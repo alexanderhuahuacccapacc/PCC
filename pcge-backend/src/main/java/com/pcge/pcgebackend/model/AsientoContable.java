@@ -1,8 +1,10 @@
 package com.pcge.pcgebackend.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,7 +21,8 @@ public class AsientoContable {
     private String descripcion;
     private String tipoOperacion; // VENTA_CONTADO, COMPRA, etc.
 
-    @OneToMany(mappedBy = "asiento", cascade = CascadeType.ALL)
-    private List<MovimientoContable> movimientos;
+    @OneToMany(mappedBy = "asiento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<MovimientoContable> movimientos = new ArrayList<>();;
 
 }

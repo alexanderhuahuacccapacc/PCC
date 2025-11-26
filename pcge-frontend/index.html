@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Contable - PCGE</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Sistema Contable PCGE</h1>
+            <p>Sistema de Plan Contable General Empresarial</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Sección de Cuentas Contables -->
+            <section class="section">
+                <h2>📋 Plan de Cuentas</h2>
+                <div class="card">
+                    <button onclick="cargarCuentas()" class="btn btn-primary">
+                        🔄 Cargar Cuentas
+                    </button>
+                    <div id="cuentas-list" class="list-container"></div>
+                </div>
+            </section>
+
+            <!-- Sección de Ventas al Contado -->
+            <section class="section">
+                <h2>💰 Registrar Venta al Contado</h2>
+                <div class="card">
+                    <form id="ventaForm" class="form">
+                        <div class="form-group">
+                            <label for="cliente">Cliente:</label>
+                            <input type="text" id="cliente" required placeholder="Nombre del cliente">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="montoTotal">Monto Total (S/):</label>
+                            <input type="number" id="montoTotal" step="0.01" required placeholder="0.00">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="descripcion">Descripción:</label>
+                            <textarea id="descripcion" rows="3" placeholder="Descripción de la venta"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            💰 Registrar Venta
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Sección de Asientos Contables -->
+            <section class="section">
+                <h2>📝 Asientos Contables</h2>
+                <div class="card">
+                    <button onclick="cargarAsientos()" class="btn btn-secondary">
+                        📋 Ver Asientos
+                    </button>
+                    <div id="asientos-list" class="list-container"></div>
+                </div>
+            </section>
+
+            <!-- Sección de Consultas -->
+            <section class="section">
+                <h2>🔍 Consultas</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label for="codigoCuenta">Código de Cuenta:</label>
+                        <input type="text" id="codigoCuenta" placeholder="Ej: 1011">
+                        <button onclick="consultarLibroMayor()" class="btn btn-info">
+                            📚 Libro Mayor
+                        </button>
+                        <button onclick="consultarSaldo()" class="btn btn-warning">
+                            💰 Consultar Saldo
+                        </button>
+                    </div>
+                    <div id="consulta-result" class="list-container"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Notificaciones -->
+        <div id="notification" class="notification hidden"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

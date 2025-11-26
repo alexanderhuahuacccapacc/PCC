@@ -1,0 +1,381 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: white;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+.section h2 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 10px;
+    border: 2px solid #e1e5e9;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #1e7e34;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
+.list-container {
+    margin-top: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.cuenta-item, .asiento-item, .movimiento-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.cuenta-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    color: #495057;
+}
+
+.cuenta-details {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.asiento-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.movimiento-item {
+    background: #e9ecef;
+    margin: 5px 0;
+    padding: 8px;
+    border-radius: 3px;
+}
+
+.movimiento-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.debe { color: #dc3545; font-weight: 600; }
+.haber { color: #28a745; font-weight: 600; }
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: 600;
+    z-index: 1000;
+    transition: all 0.3s;
+}
+
+.notification.success { background: #28a745; }
+.notification.error { background: #dc3545; }
+.notification.info { background: #17a2b8; }
+
+.hidden { display: none; }
+
+.loading {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+}
+/* Estilos para la tabla de movimientos */
+.table-container {
+    overflow-x: auto;
+    margin-top: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+}
+
+.movimientos-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.movimientos-table th {
+    background: #3498db;
+    color: white;
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #2980b9;
+}
+
+.movimientos-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.movimientos-table tr:hover {
+    background: #f8f9fa;
+}
+
+.movimientos-table .debe {
+    color: #27ae60;
+    font-weight: bold;
+    text-align: right;
+}
+
+.movimientos-table .haber {
+    color: #e74c3c;
+    font-weight: bold;
+    text-align: right;
+}
+
+.movimientos-table .saldo-positivo {
+    color: #27ae60;
+    font-weight: bold;
+    text-align: right;
+}
+
+.movimientos-table .saldo-negativo {
+    color: #e74c3c;
+    font-weight: bold;
+    text-align: right;
+}
+
+.movimientos-table .asiento-numero {
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.movimientos-table .fecha {
+    white-space: nowrap;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.movimientos-table .descripcion {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.consulta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.consulta-header h4 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.saldo-final {
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+/* Asegurar que las columnas tengan buen ancho */
+.movimientos-table th:nth-child(1),
+.movimientos-table td:nth-child(1) {
+    width: 180px; /* Asiento */
+}
+
+.movimientos-table th:nth-child(2),
+.movimientos-table td:nth-child(2) {
+    width: 100px; /* Fecha */
+}
+
+.movimientos-table th:nth-child(3),
+.movimientos-table td:nth-child(3) {
+    width: 200px; /* Descripción */
+}
+
+.movimientos-table th:nth-child(4),
+.movimientos-table td:nth-child(4),
+.movimientos-table th:nth-child(5),
+.movimientos-table td:nth-child(5),
+.movimientos-table th:nth-child(6),
+.movimientos-table td:nth-child(6) {
+    width: 120px; /* Debe, Haber, Saldo */
+    text-align: right;
+}
+.saldo-cero {
+    color: #28a745;
+    font-weight: bold;
+    background-color: #e6f7e6;
+}
+
+.saldo-positivo {
+    color: #007bff;
+}
+
+.saldo-negativo {
+    color: #dc3545;
+}
+
+.saldo-final-row {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+.proceso-codigo {
+    font-family: monospace;
+    font-size: 0.9em;
+}

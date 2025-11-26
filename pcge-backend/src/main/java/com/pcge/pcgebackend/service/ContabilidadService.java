@@ -21,9 +21,10 @@ public class ContabilidadService {
     private final MovimientoContableRepository movimientoRepository;
 
     // Códigos de cuentas según PCGE
-    private static final String CUENTA_CAJA = "101";
+    private static final String CUENTA_CAJA = "121";
     private static final String CUENTA_VENTAS = "701";
     private static final String CUENTA_IGV = "40111";
+    private static final String CUENTA_EFECTIVO = "101"; // ✅ NUEVA CUENTA
     private static final BigDecimal IGV_PORCENTAJE = new BigDecimal("0.18");
 
     public ContabilidadService(AsientoContableRepository asientoRepository,
@@ -40,35 +41,53 @@ public class ContabilidadService {
         Cuenta cuentaCaja = obtenerCuentaOError(CUENTA_CAJA, "Cuenta Caja no configurada");
         Cuenta cuentaVentas = obtenerCuentaOError(CUENTA_VENTAS, "Cuenta Ventas no configurada");
         Cuenta cuentaIgv = obtenerCuentaOError(CUENTA_IGV, "Cuenta IGV no configurada");
+        Cuenta cuentaEfectivo = obtenerCuentaOError(CUENTA_EFECTIVO, "Cuenta Efectivo no configurada"); // ✅ NUEVA
 
         // Calcular montos
-        BigDecimal montoIgv = request.getMontoBase().multiply(IGV_PORCENTAJE);
-        BigDecimal montoTotal = request.getMontoBase().add(montoIgv);
+        BigDecimal montoTotal = request.getMontoTotal();
+        BigDecimal montoBase = montoTotal.divide(new BigDecimal("1.18"), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal montoIgv = montoTotal.subtract(montoBase);
 
-        // Crear asiento
-        AsientoContable asiento = new AsientoContable();
-        asiento.setNumeroAsiento(generarNumeroAsiento());
-        asiento.setFecha(LocalDateTime.now());
-        asiento.setDescripcion("Venta al contado - " + request.getCliente());
-        asiento.setTipoOperacion("VENTA_CONTADO");
+        // ✅ PRIMER ASIENTO: REGISTRO DE VENTA
+        AsientoContable asientoVenta = new AsientoContable();
+        asientoVenta.setNumeroAsiento(generarNumeroAsiento() + "-V");
+        asientoVenta.setFecha(LocalDateTime.now());
+        asientoVenta.setDescripcion("Venta al contado - " + request.getCliente());
+        asientoVenta.setTipoOperacion("VENTA_CONTADO");
+        asientoVenta.setMovimientos(new ArrayList<>());
 
-        // Crear movimientos
-        List<MovimientoContable> movimientos = new ArrayList<>();
+        // Movimientos del asiento de venta
+        MovimientoContable movCajaVenta = crearMovimiento(asientoVenta, cuentaCaja, montoTotal, BigDecimal.ZERO, "Cobro venta contado");
+        MovimientoContable movVentas = crearMovimiento(asientoVenta, cuentaVentas, BigDecimal.ZERO, montoBase, "Venta de mercaderías");
+        MovimientoContable movIgv = crearMovimiento(asientoVenta, cuentaIgv, BigDecimal.ZERO, montoIgv, "IGV venta");
 
-        // 1. Débito a Caja
-        movimientos.add(crearMovimiento(asiento, cuentaCaja, montoTotal, BigDecimal.ZERO, "Cobro venta contado"));
+        asientoVenta.getMovimientos().add(movCajaVenta);
+        asientoVenta.getMovimientos().add(movVentas);
+        asientoVenta.getMovimientos().add(movIgv);
 
-        // 2. Crédito a Ventas
-        movimientos.add(crearMovimiento(asiento, cuentaVentas, BigDecimal.ZERO, request.getMontoBase(), "Venta de mercaderías"));
+        validarAsientoCuadrado(asientoVenta.getMovimientos());
+        AsientoContable asientoVentaGuardado = asientoRepository.save(asientoVenta);
 
-        // 3. Crédito a IGV
-        movimientos.add(crearMovimiento(asiento, cuentaIgv, BigDecimal.ZERO, montoIgv, "IGV venta"));
+        // ✅ SEGUNDO ASIENTO: INGRESO A CAJA (EFECTIVO)
+        AsientoContable asientoCaja = new AsientoContable();
+        asientoCaja.setNumeroAsiento(generarNumeroAsiento() + "-C");
+        asientoCaja.setFecha(LocalDateTime.now());
+        asientoCaja.setDescripcion("Ingreso a caja por venta - " + request.getCliente());
+        asientoCaja.setTipoOperacion("INGRESO_CAJA");
+        asientoCaja.setMovimientos(new ArrayList<>());
 
-        // Validar que el asiento esté cuadrado
-        validarAsientoCuadrado(movimientos);
+        // Movimientos del asiento de caja
+        MovimientoContable movEfectivo = crearMovimiento(asientoCaja, cuentaEfectivo, montoTotal, BigDecimal.ZERO, "Ingreso de efectivo");
+        MovimientoContable movCajaCierre = crearMovimiento(asientoCaja, cuentaCaja, BigDecimal.ZERO, montoTotal, "Cierre de caja venta");
 
-        asiento.setMovimientos(movimientos);
-        return asientoRepository.save(asiento);
+        asientoCaja.getMovimientos().add(movEfectivo);
+        asientoCaja.getMovimientos().add(movCajaCierre);
+
+        validarAsientoCuadrado(asientoCaja.getMovimientos());
+        AsientoContable asientoCajaGuardado = asientoRepository.save(asientoCaja);
+
+        // Retornar el asiento de venta (puedes cambiar esto si prefieres retornar ambos)
+        return asientoVentaGuardado;
     }
 
     private Cuenta obtenerCuentaOError(String codigo, String mensajeError) {
@@ -110,11 +129,17 @@ public class ContabilidadService {
     }
 
     public BigDecimal obtenerSaldoCuenta(String codigoCuenta) {
-        return movimientoRepository.calcularSaldoCuenta(codigoCuenta);
+        List<MovimientoContable> movimientos = movimientoRepository.findByCuentaCodigo(codigoCuenta);
+
+        BigDecimal saldo = BigDecimal.ZERO;
+        for (MovimientoContable mov : movimientos) {
+            saldo = saldo.add(mov.getDebe().subtract(mov.getHaber()));
+        }
+
+        return saldo;
     }
 
     public List<AsientoContable> obtenerTodosAsientos() {
         return asientoRepository.findAllOrderByFechaDesc();
     }
-
 }

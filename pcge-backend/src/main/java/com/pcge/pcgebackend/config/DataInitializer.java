@@ -37,11 +37,11 @@ public class DataInitializer implements CommandLineRunner {
         cuentaRepository.save(activo);
 
         Cuenta caja = new Cuenta();
-        caja.setCodigo("101");
+        caja.setCodigo("121");
         caja.setNombre("CAJA");
         caja.setNivel(2);
         caja.setTipo("ACTIVO");
-        caja.setPadreId("10");
+        caja.setPadreId("101");
         cuentaRepository.save(caja);
 
         Cuenta cajaGeneral = new Cuenta();

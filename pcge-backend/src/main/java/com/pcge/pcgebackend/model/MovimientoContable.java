@@ -1,4 +1,5 @@
 package com.pcge.pcgebackend.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ public class MovimientoContable {
 
     @ManyToOne
     @JoinColumn(name = "asiento_id")
+    @JsonIgnore
     private AsientoContable asiento;
 
     @ManyToOne
