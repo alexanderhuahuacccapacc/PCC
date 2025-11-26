@@ -2,15 +2,18 @@ package com.pcge.pcgebackend.service;
 import com.pcge.pcgebackend.dto.VentaContadoRequest;
 import com.pcge.pcgebackend.dto.VentaCreditoRequest;
 import com.pcge.pcgebackend.model.AsientoContable;
+import com.pcge.pcgebackend.model.Comprobante;
 import com.pcge.pcgebackend.model.Cuenta;
 import com.pcge.pcgebackend.model.MovimientoContable;
 import com.pcge.pcgebackend.repository.AsientoContableRepository;
+import com.pcge.pcgebackend.repository.ComprobanteRepository;
 import com.pcge.pcgebackend.repository.CuentaRepository;
 import com.pcge.pcgebackend.repository.MovimientoContableRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ public class ContabilidadService {
     private final AsientoContableRepository asientoRepository;
     private final CuentaRepository cuentaRepository;
     private final MovimientoContableRepository movimientoRepository;
+    private final ComprobanteRepository comprobanteRepository;
 
     // Códigos de cuentas según PCGE
     private static final String CUENTA_CAJA = "121";
@@ -30,14 +34,37 @@ public class ContabilidadService {
 
     public ContabilidadService(AsientoContableRepository asientoRepository,
                                CuentaRepository cuentaRepository,
-                               MovimientoContableRepository movimientoRepository) {
+                               MovimientoContableRepository movimientoRepository, ComprobanteRepository comprobanteRepository) {
         this.asientoRepository = asientoRepository;
         this.cuentaRepository = cuentaRepository;
         this.movimientoRepository = movimientoRepository;
+        this.comprobanteRepository = comprobanteRepository;
     }
+    private Long generarNumeroOperacion() {
+        Long ultimoNumero = comprobanteRepository.findMaxNumeroOperacion();
+        return (ultimoNumero == null ? 0 : ultimoNumero) + 1;
+    }
+
 
     @Transactional
     public AsientoContable registrarVentaContado(VentaContadoRequest request) {
+        Comprobante comprobante = new Comprobante();
+        comprobante.setNumeroOperacion(generarNumeroOperacion());
+        comprobante.setFechaEmision(LocalDate.parse(request.getFechaEmision()));
+        comprobante.setFechaVencimiento(request.getFechaVencimiento() != null ?
+                LocalDate.parse(request.getFechaVencimiento()) : null);
+        comprobante.setTipoComprobante(request.getTipoComprobante());
+        comprobante.setNumeroSerie(request.getNumeroSerie());
+        comprobante.setNumeroDocumento(request.getNumeroDocumento());
+        comprobante.setTipoDocumentoIdentidad(request.getTipoDocumentoIdentidad());
+        comprobante.setNumeroDocumentoIdentidad(request.getNumeroDocumentoIdentidad());
+        comprobante.setCliente(request.getCliente());
+        comprobante.setTipoVenta("CONTADO");
+        comprobante.setMontoTotal(request.getMontoTotal().doubleValue());
+        comprobante.setDescripcion(request.getDescripcion());
+        comprobante.setFechaRegistro(LocalDate.now());
+
+        comprobanteRepository.save(comprobante);
         // Validar que las cuentas existan
         Cuenta cuentaCaja = obtenerCuentaOError(CUENTA_CAJA, "Cuenta Caja no configurada");
         Cuenta cuentaVentas = obtenerCuentaOError(CUENTA_VENTAS, "Cuenta Ventas no configurada");
@@ -53,7 +80,9 @@ public class ContabilidadService {
         AsientoContable asientoVenta = new AsientoContable();
         asientoVenta.setNumeroAsiento(generarNumeroAsiento() + "-V");
         asientoVenta.setFecha(LocalDateTime.now());
-        asientoVenta.setDescripcion("Venta al contado - " + request.getCliente());
+        asientoVenta.setDescripcion("Venta al contado - " + request.getCliente() +  " - Comp: " + request.getTipoComprobante() +
+                "-" + request.getNumeroSerie() +
+                "-" + request.getNumeroDocumento());
         asientoVenta.setTipoOperacion("VENTA_CONTADO");
         asientoVenta.setMovimientos(new ArrayList<>());
 
@@ -93,6 +122,22 @@ public class ContabilidadService {
     @Transactional
     public AsientoContable registrarVentaCredito(VentaCreditoRequest request) {
         // Cuentas para venta a crédito
+        Comprobante comprobante = new Comprobante();
+        comprobante.setNumeroOperacion(generarNumeroOperacion());
+        comprobante.setFechaEmision(LocalDate.parse(request.getFechaEmision()));
+        comprobante.setFechaVencimiento(request.getFechaVencimiento() != null ?
+                LocalDate.parse(request.getFechaVencimiento()) : null);
+        comprobante.setTipoComprobante(request.getTipoComprobante());
+        comprobante.setNumeroSerie(request.getNumeroSerie());
+        comprobante.setNumeroDocumento(request.getNumeroDocumento());
+        comprobante.setTipoDocumentoIdentidad(request.getTipoDocumentoIdentidad());
+        comprobante.setNumeroDocumentoIdentidad(request.getNumeroDocumentoIdentidad());
+        comprobante.setCliente(request.getCliente());
+        comprobante.setTipoVenta("CREDITO");
+        comprobante.setMontoTotal(request.getMontoTotal().doubleValue());
+        comprobante.setDescripcion(request.getDescripcion());
+        comprobante.setFechaRegistro(LocalDate.now());
+
         Cuenta cuentaClientes = obtenerCuentaOError("121", "Cuenta Clientes no configurada");
         Cuenta cuentaVentas = obtenerCuentaOError(CUENTA_VENTAS, "Cuenta Ventas no configurada");
         Cuenta cuentaIgv = obtenerCuentaOError(CUENTA_IGV, "Cuenta IGV no configurada");
@@ -106,7 +151,10 @@ public class ContabilidadService {
         AsientoContable asientoVenta = new AsientoContable();
         asientoVenta.setNumeroAsiento(generarNumeroAsiento() + "-VC");
         asientoVenta.setFecha(LocalDateTime.now());
-        asientoVenta.setDescripcion("Venta a crédito - " + request.getCliente());
+        asientoVenta.setDescripcion("Venta a crédito - " + request.getCliente() +
+                " - Comp: " + request.getTipoComprobante() +
+                "-" + request.getNumeroSerie() +
+                "-" + request.getNumeroDocumento());
         asientoVenta.setTipoOperacion("VENTA_CREDITO");
         asientoVenta.setMovimientos(new ArrayList<>());
 
@@ -121,6 +169,9 @@ public class ContabilidadService {
 
         validarAsientoCuadrado(asientoVenta.getMovimientos());
         return asientoRepository.save(asientoVenta);
+    }
+    public List<Comprobante> obtenerTodosComprobantes() {
+        return comprobanteRepository.findAllByOrderByNumeroOperacionDesc();
     }
 
     private Cuenta obtenerCuentaOError(String codigo, String mensajeError) {

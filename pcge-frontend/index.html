@@ -27,39 +27,136 @@
 
             <!-- Sección de Ventas al Contado -->
             <section class="section">
-                <h2>💰 Registrar Venta al Contado</h2>
-                <div class="card">
-                    <form id="ventaForm" class="form">
-                        <div class="form-group">
-                            <label for="cliente">Cliente:</label>
-                            <input type="text" id="cliente" required placeholder="Nombre del cliente">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="tipoVenta">Tipo de Venta:</label>
-                            <select id="tipoVenta" required class="form-control">
-                                <option value="">Seleccionar tipo</option>
-                                <option value="CONTADO">Contado</option>
-                                <option value="CREDITO">Crédito</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="montoTotal">Monto Total (S/):</label>
-                            <input type="number" id="montoTotal" step="0.01" required placeholder="0.00">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="descripcion">Descripción:</label>
-                            <textarea id="descripcion" rows="3" placeholder="Descripción de la venta"></textarea>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-success">
-                            💰 Registrar Venta
-                        </button>
-                    </form>
+    <h2>💰 Registrar Comprobante de Venta</h2>
+    <div class="card">
+        <form id="ventaForm" class="form">
+            <!-- Fila 1: Información básica -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="numeroOperacion">N° Correlativo de Operación:</label>
+                    <input type="number" id="numeroOperacion" required placeholder="Ej: 1, 2, 3...">
                 </div>
-            </section>
+                
+                <div class="form-group">
+                    <label for="fechaEmision">Fecha de Emisión:</label>
+                    <input type="date" id="fechaEmision" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fechaVencimiento">Fecha de Vencimiento:</label>
+                    <input type="date" id="fechaVencimiento">
+                </div>
+            </div>
+
+            <!-- Fila 2: Comprobante de Pago -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipoComprobante">Tipo Comprobante (Tabla 10):</label>
+                    <select id="tipoComprobante" required class="form-control">
+                        <option value="">Seleccionar tipo</option>
+                        <option value="01">01 - Factura</option>
+                        <option value="03">03 - Boleta de Venta</option>
+                        <option value="07">07 - Nota de Crédito</option>
+                        <option value="08">08 - Nota de Débito</option>
+                        <option value="09">09 - Guía de Remisión</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="numeroSerie">N° de Serie:</label>
+                    <input type="text" id="numeroSerie" required placeholder="Ej: F001, B001">
+                </div>
+                
+                <div class="form-group">
+                    <label for="numeroDocumento">N° de Documento:</label>
+                    <input type="number" id="numeroDocumento" required placeholder="Ej: 2554, 4873">
+                </div>
+            </div>
+
+            <!-- Fila 3: Información del Cliente -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipoDocumentoIdentidad">Tipo Doc. Identidad:</label>
+                    <select id="tipoDocumentoIdentidad" required class="form-control">
+                        <option value="">Seleccionar</option>
+                        <option value="6">6 - RUC</option>
+                        <option value="1">1 - DNI</option>
+                        <option value="4">4 - Carnet de Extranjería</option>
+                        <option value="7">7 - Pasaporte</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="numeroDocumentoIdentidad">N° Documento Identidad:</label>
+                    <input type="text" id="numeroDocumentoIdentidad" required placeholder="Ej: 2018059, 1235458">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cliente">Cliente/Razón Social:</label>
+                    <input type="text" id="cliente" required placeholder="Apellidos y Nombres o Razón Social">
+                </div>
+            </div>
+
+            <!-- Fila 4: Información de la Venta -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipoVenta">Tipo de Venta:</label>
+                    <select id="tipoVenta" required class="form-control">
+                        <option value="">Seleccionar tipo</option>
+                        <option value="CONTADO">Contado</option>
+                        <option value="CREDITO">Crédito</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="montoTotal">Monto Total (S/):</label>
+                    <input type="number" id="montoTotal" step="0.01" required placeholder="0.00">
+                </div>
+                
+                <div class="form-group">
+                    <label for="descripcion">Descripción:</label>
+                    <input type="text" id="descripcion" placeholder="Descripción de la venta">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-success">
+                💰 Registrar Comprobante
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- Sección para mostrar la tabla de comprobantes registrados -->
+<section class="section">
+    <h2>📋 Comprobantes Registrados</h2>
+    <div class="card">
+        <div class="table-container">
+            <table class="comprobantes-table">
+                <thead>
+                    <tr>
+                        <th>N° Operación</th>
+                        <th>Fecha Emisión</th>
+                        <th>Fecha Venc.</th>
+                        <th>Tipo Comp.</th>
+                        <th>N° Serie</th>
+                        <th>N° Documento</th>
+                        <th>Tipo Doc.</th>
+                        <th>N° Doc. Identidad</th>
+                        <th>Cliente</th>
+                        <th>Tipo Venta</th>
+                        <th>Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody id="comprobantes-list">
+                    <!-- Aquí se llenarán los comprobantes registrados -->
+                    <tr>
+                        <td colspan="11" class="loading">No hay comprobantes registrados</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
             <!-- Sección de Asientos Contables -->
             <section class="section">

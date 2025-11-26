@@ -71,14 +71,26 @@ document.getElementById('ventaForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const formData = {
-        cliente: document.getElementById('cliente').value,
+        // Datos básicos
+        cliente: document.getElementById('cliente').value.trim(),
         tipoVenta: document.getElementById('tipoVenta').value,
         montoTotal: parseFloat(document.getElementById('montoTotal').value),
-        descripcion: document.getElementById('descripcion').value
+        descripcion: document.getElementById('descripcion').value.trim(),
+        
+        // Datos del comprobante
+        tipoComprobante: document.getElementById('tipoComprobante').value,
+        numeroSerie: document.getElementById('numeroSerie').value.trim(),
+        numeroDocumento: document.getElementById('numeroDocumento').value.trim(),
+        
+        // Datos del cliente
+        tipoDocumentoIdentidad: document.getElementById('tipoDocumentoIdentidad').value,
+        numeroDocumentoIdentidad: document.getElementById('numeroDocumentoIdentidad').value.trim(),
+        fechaEmision: document.getElementById('fechaEmision').value,
+        fechaVencimiento: document.getElementById('fechaVencimiento').value
     };
     
     // Validaciones
-    if (!formData.cliente || !formData.montoTotal || !formData.tipoVenta) {
+    if (!validarFormularioVenta(formData)) {
         showNotification('❌ Por favor completa todos los campos obligatorios', 'error');
         return;
     }
@@ -104,14 +116,27 @@ document.getElementById('ventaForm').addEventListener('submit', async (e) => {
             requestBody = {
                 cliente: formData.cliente,
                 montoTotal: formData.montoTotal,
-                descripcion: formData.descripcion || `Venta al contado - ${formData.cliente}`
+                descripcion: formData.descripcion || `Venta al contado - ${formData.cliente}`,
+                tipoComprobante: formData.tipoComprobante,
+                numeroSerie: formData.numeroSerie,
+                numeroDocumento: formData.numeroDocumento,
+                tipoDocumentoIdentidad: formData.tipoDocumentoIdentidad,
+                numeroDocumentoIdentidad: formData.numeroDocumentoIdentidad,
+                fechaEmision: formData.fechaEmision
             };
         } else if (formData.tipoVenta === 'CREDITO') {
             endpoint = '/contabilidad/venta-credito';
             requestBody = {
                 cliente: formData.cliente,
                 montoTotal: formData.montoTotal,
-                descripcion: formData.descripcion || `Venta a crédito - ${formData.cliente}`
+                descripcion: formData.descripcion || `Venta a crédito - ${formData.cliente}`,
+                tipoComprobante: formData.tipoComprobante,
+                numeroSerie: formData.numeroSerie,
+                numeroDocumento: formData.numeroDocumento,
+                tipoDocumentoIdentidad: formData.tipoDocumentoIdentidad,
+                numeroDocumentoIdentidad: formData.numeroDocumentoIdentidad,
+                fechaEmision: formData.fechaEmision,
+                fechaVencimiento: formData.fechaVencimiento || calcularFechaVencimiento()
             };
         } else {
             throw new Error('Tipo de venta no válido');
@@ -129,6 +154,8 @@ document.getElementById('ventaForm').addEventListener('submit', async (e) => {
         
         // Mostrar el asiento creado
         mostrarAsientoDetalle(asiento);
+        // Actualizar la tabla de comprobantes
+        cargarComprobantes();
         
     } catch (error) {
         console.error('Error al registrar venta:', error);
@@ -138,6 +165,87 @@ document.getElementById('ventaForm').addEventListener('submit', async (e) => {
         button.disabled = false;
     }
 });
+function validarFormularioVenta(formData) {
+    const camposRequeridos = [
+        'cliente', 'tipoVenta', 'montoTotal', 'tipoComprobante',
+        'numeroSerie', 'numeroDocumento', 'tipoDocumentoIdentidad',
+        'numeroDocumentoIdentidad', 'fechaEmision'
+    ];
+    
+    for (const campo of camposRequeridos) {
+        if (!formData[campo]) {
+            showNotification(`❌ El campo ${campo} es obligatorio`, 'error');
+            return false;
+        }
+    }
+    
+    if (formData.montoTotal <= 0 || isNaN(formData.montoTotal)) {
+        showNotification('❌ El monto total debe ser un número mayor a cero', 'error');
+        return false;
+    }
+    
+    // Validación específica para crédito
+    if (formData.tipoVenta === 'CREDITO' && !formData.fechaVencimiento) {
+        showNotification('❌ Para ventas a crédito, la fecha de vencimiento es obligatoria', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+// Función para calcular fecha de vencimiento por defecto (30 días)
+function calcularFechaVencimiento() {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() + 30);
+    return fecha.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+}
+
+// Mostrar/ocultar fecha de vencimiento según tipo de venta
+document.getElementById('tipoVenta').addEventListener('change', function() {
+    const fechaVencimientoGroup = document.getElementById('fechaVencimiento').closest('.form-group');
+    if (this.value === 'CREDITO') {
+        fechaVencimientoGroup.style.display = 'block';
+    } else {
+        fechaVencimientoGroup.style.display = 'none';
+    }
+});
+
+// Función para cargar comprobantes registrados
+async function cargarComprobantes() {
+    try {
+        const tbody = document.getElementById('comprobantes-list');
+        tbody.innerHTML = '<tr><td colspan="11" class="loading">Cargando comprobantes...</td></tr>';
+        
+        // Aquí debes cambiar la URL por tu endpoint real de comprobantes
+        const comprobantes = await apiCall('/contabilidad/comprobantes');
+        
+        if (comprobantes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" class="loading">No hay comprobantes registrados</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = comprobantes.map(comp => `
+            <tr>
+                <td>${comp.numeroOperacion || comp.id || ''}</td>
+                <td>${comp.fechaEmision || ''}</td>
+                <td>${comp.fechaVencimiento || ''}</td>
+                <td>${comp.tipoComprobante || ''}</td>
+                <td>${comp.numeroSerie || ''}</td>
+                <td>${comp.numeroDocumento || ''}</td>
+                <td>${comp.tipoDocumentoIdentidad || ''}</td>
+                <td>${comp.numeroDocumentoIdentidad || ''}</td>
+                <td>${comp.cliente || ''}</td>
+                <td>${comp.tipoVenta || ''}</td>
+                <td>S/ ${parseFloat(comp.montoTotal || 0).toFixed(2)}</td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error al cargar comprobantes:', error);
+        document.getElementById('comprobantes-list').innerHTML = 
+            '<tr><td colspan="11" class="loading">Error al cargar comprobantes</td></tr>';
+    }
+}
 
 // Funciones para Asientos
 async function cargarAsientos() {
