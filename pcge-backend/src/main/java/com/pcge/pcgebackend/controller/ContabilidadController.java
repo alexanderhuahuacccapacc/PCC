@@ -2,6 +2,7 @@ package com.pcge.pcgebackend.controller;
 import com.pcge.pcgebackend.dto.VentaContadoRequest;
 import com.pcge.pcgebackend.dto.VentaCreditoRequest;
 import com.pcge.pcgebackend.model.AsientoContable;
+import com.pcge.pcgebackend.model.Comprobante;
 import com.pcge.pcgebackend.model.MovimientoContable;
 import com.pcge.pcgebackend.service.ContabilidadService;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,15 @@ public class ContabilidadController {
         try {
             AsientoContable asiento = contabilidadService.registrarVentaCredito(request);
             return ResponseEntity.ok(asiento);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    @GetMapping("/comprobantes")
+    public ResponseEntity<List<Comprobante>> obtenerTodosComprobantes() {
+        try {
+            List<Comprobante> comprobantes = contabilidadService.obtenerTodosComprobantes();
+            return ResponseEntity.ok(comprobantes);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
