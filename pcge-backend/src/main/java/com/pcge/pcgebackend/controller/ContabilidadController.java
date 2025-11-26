@@ -1,5 +1,6 @@
 package com.pcge.pcgebackend.controller;
 import com.pcge.pcgebackend.dto.VentaContadoRequest;
+import com.pcge.pcgebackend.dto.VentaCreditoRequest;
 import com.pcge.pcgebackend.model.AsientoContable;
 import com.pcge.pcgebackend.model.MovimientoContable;
 import com.pcge.pcgebackend.service.ContabilidadService;
@@ -28,6 +29,16 @@ public class ContabilidadController {
             return ResponseEntity.badRequest().build();
         }
     }
+    @PostMapping("/venta-credito")
+    public ResponseEntity<AsientoContable> registrarVentaCredito(@RequestBody VentaCreditoRequest request) {
+        try {
+            AsientoContable asiento = contabilidadService.registrarVentaCredito(request);
+            return ResponseEntity.ok(asiento);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 
     @GetMapping("/libro-mayor/{codigoCuenta}")
     public ResponseEntity<List<MovimientoContable>> obtenerLibroMayor(@PathVariable String codigoCuenta) {

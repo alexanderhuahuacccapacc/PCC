@@ -1,5 +1,6 @@
 package com.pcge.pcgebackend.service;
 import com.pcge.pcgebackend.dto.VentaContadoRequest;
+import com.pcge.pcgebackend.dto.VentaCreditoRequest;
 import com.pcge.pcgebackend.model.AsientoContable;
 import com.pcge.pcgebackend.model.Cuenta;
 import com.pcge.pcgebackend.model.MovimientoContable;
@@ -88,6 +89,38 @@ public class ContabilidadService {
 
         // Retornar el asiento de venta (puedes cambiar esto si prefieres retornar ambos)
         return asientoVentaGuardado;
+    }
+    @Transactional
+    public AsientoContable registrarVentaCredito(VentaCreditoRequest request) {
+        // Cuentas para venta a crédito
+        Cuenta cuentaClientes = obtenerCuentaOError("121", "Cuenta Clientes no configurada");
+        Cuenta cuentaVentas = obtenerCuentaOError(CUENTA_VENTAS, "Cuenta Ventas no configurada");
+        Cuenta cuentaIgv = obtenerCuentaOError(CUENTA_IGV, "Cuenta IGV no configurada");
+
+        // Calcular montos
+        BigDecimal montoTotal = request.getMontoTotal();
+        BigDecimal montoBase = montoTotal.divide(new BigDecimal("1.18"), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal montoIgv = montoTotal.subtract(montoBase);
+
+        // Asiento de venta a crédito
+        AsientoContable asientoVenta = new AsientoContable();
+        asientoVenta.setNumeroAsiento(generarNumeroAsiento() + "-VC");
+        asientoVenta.setFecha(LocalDateTime.now());
+        asientoVenta.setDescripcion("Venta a crédito - " + request.getCliente());
+        asientoVenta.setTipoOperacion("VENTA_CREDITO");
+        asientoVenta.setMovimientos(new ArrayList<>());
+
+        // Movimientos del asiento de venta a crédito
+        MovimientoContable movClientes = crearMovimiento(asientoVenta, cuentaClientes, montoTotal, BigDecimal.ZERO, "Cuenta por cobrar cliente");
+        MovimientoContable movVentas = crearMovimiento(asientoVenta, cuentaVentas, BigDecimal.ZERO, montoBase, "Venta de mercaderías a crédito");
+        MovimientoContable movIgv = crearMovimiento(asientoVenta, cuentaIgv, BigDecimal.ZERO, montoIgv, "IGV venta a crédito");
+
+        asientoVenta.getMovimientos().add(movClientes);
+        asientoVenta.getMovimientos().add(movVentas);
+        asientoVenta.getMovimientos().add(movIgv);
+
+        validarAsientoCuadrado(asientoVenta.getMovimientos());
+        return asientoRepository.save(asientoVenta);
     }
 
     private Cuenta obtenerCuentaOError(String codigo, String mensajeError) {

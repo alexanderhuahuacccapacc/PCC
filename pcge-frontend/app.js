@@ -66,38 +66,74 @@ async function cargarCuentas() {
     }
 }
 
-// Funciones para Ventas
+// FUNCIÓN ÚNICA PARA VENTAS (CONTADO Y CRÉDITO)
 document.getElementById('ventaForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const formData = {
         cliente: document.getElementById('cliente').value,
+        tipoVenta: document.getElementById('tipoVenta').value,
         montoTotal: parseFloat(document.getElementById('montoTotal').value),
         descripcion: document.getElementById('descripcion').value
     };
+    
+    // Validaciones
+    if (!formData.cliente || !formData.montoTotal || !formData.tipoVenta) {
+        showNotification('❌ Por favor completa todos los campos obligatorios', 'error');
+        return;
+    }
+    
+    if (formData.montoTotal <= 0) {
+        showNotification('❌ El monto total debe ser mayor a cero', 'error');
+        return;
+    }
+    
     const button = e.target.querySelector('button[type="submit"]');
     const originalText = button.textContent;
     
     try {
-        
         button.textContent = 'Registrando...';
         button.disabled = true;
         
-        const asiento = await apiCall('/contabilidad/venta-contado', {
+        // Determinar el endpoint según el tipo de venta
+        let endpoint;
+        let requestBody;
+        
+        if (formData.tipoVenta === 'CONTADO') {
+            endpoint = '/contabilidad/venta-contado';
+            requestBody = {
+                cliente: formData.cliente,
+                montoTotal: formData.montoTotal,
+                descripcion: formData.descripcion || `Venta al contado - ${formData.cliente}`
+            };
+        } else if (formData.tipoVenta === 'CREDITO') {
+            endpoint = '/contabilidad/venta-credito';
+            requestBody = {
+                cliente: formData.cliente,
+                montoTotal: formData.montoTotal,
+                descripcion: formData.descripcion || `Venta a crédito - ${formData.cliente}`
+            };
+        } else {
+            throw new Error('Tipo de venta no válido');
+        }
+        
+        console.log('Enviando datos:', { endpoint, requestBody });
+        
+        const asiento = await apiCall(endpoint, {
             method: 'POST',
-            body: JSON.stringify(formData)
+            body: JSON.stringify(requestBody)
         });
         
-        showNotification('✅ Venta registrada exitosamente!', 'success');
+        showNotification(`✅ Venta al ${formData.tipoVenta.toLowerCase()} registrada exitosamente!`, 'success');
         document.getElementById('ventaForm').reset();
         
         // Mostrar el asiento creado
         mostrarAsientoDetalle(asiento);
         
     } catch (error) {
-        showNotification('❌ Error al registrar la venta', 'error');
+        console.error('Error al registrar venta:', error);
+        showNotification(`❌ Error al registrar la venta: ${error.message}`, 'error');
     } finally {
-        const button = e.target.querySelector('button[type="submit"]');
         button.textContent = originalText;
         button.disabled = false;
     }
@@ -315,8 +351,6 @@ async function consultarSaldo() {
             '<div class="loading">Error al consultar el saldo. Verifica que la cuenta exista.</div>';
     }
 }
-
-// Y deja consultarLibroMayor como está para la tabla
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
