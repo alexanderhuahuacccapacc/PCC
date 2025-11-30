@@ -1,3 +1,12 @@
+document.documentElement.setAttribute("translate", "no");
+document.documentElement.classList.add("notranslate");
+try {
+    const meta = document.createElement("meta");
+    meta.name = "google";
+    meta.content = "notranslate";
+    document.head.appendChild(meta);
+} catch (e) {}
+// Configuración del API
 const API_BASE_URL = 'http://localhost:8085/api';
 
 // Utilidades
@@ -211,24 +220,26 @@ document.getElementById('tipoVenta').addEventListener('change', function() {
 });
 
 // Función para cargar comprobantes registrados
+// Función para cargar comprobantes registrados
 async function cargarComprobantes() {
     try {
         const tbody = document.getElementById('comprobantes-list');
         tbody.innerHTML = '<tr><td colspan="11" class="loading">Cargando comprobantes...</td></tr>';
         
-        // Aquí debes cambiar la URL por tu endpoint real de comprobantes
+        console.log('📋 Intentando cargar comprobantes...');
         const comprobantes = await apiCall('/contabilidad/comprobantes');
+        console.log('✅ Comprobantes recibidos:', comprobantes);
         
-        if (comprobantes.length === 0) {
+        if (!comprobantes || comprobantes.length === 0) {
             tbody.innerHTML = '<tr><td colspan="11" class="loading">No hay comprobantes registrados</td></tr>';
             return;
         }
         
         tbody.innerHTML = comprobantes.map(comp => `
             <tr>
-                <td>${comp.numeroOperacion || comp.id || ''}</td>
+                <td>${comp.numeroOperacion || ''}</td>
                 <td>${comp.fechaEmision || ''}</td>
-                <td>${comp.fechaVencimiento || ''}</td>
+                <td>${comp.fechaVencimiento || 'N/A'}</td>
                 <td>${comp.tipoComprobante || ''}</td>
                 <td>${comp.numeroSerie || ''}</td>
                 <td>${comp.numeroDocumento || ''}</td>
@@ -240,10 +251,12 @@ async function cargarComprobantes() {
             </tr>
         `).join('');
         
+        console.log(`✅ Se cargaron ${comprobantes.length} comprobantes`);
+        
     } catch (error) {
-        console.error('Error al cargar comprobantes:', error);
+        console.error('❌ Error al cargar comprobantes:', error);
         document.getElementById('comprobantes-list').innerHTML = 
-            '<tr><td colspan="11" class="loading">Error al cargar comprobantes</td></tr>';
+            '<tr><td colspan="11" class="loading">Error al cargar comprobantes: ' + error.message + '</td></tr>';
     }
 }
 
@@ -466,4 +479,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Cargar cuentas automáticamente al inicio
     setTimeout(cargarCuentas, 1000);
+    setTimeout(cargarComprobantes, 1500);
 });

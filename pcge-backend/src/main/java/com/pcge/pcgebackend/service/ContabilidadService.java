@@ -137,7 +137,7 @@ public class ContabilidadService {
         comprobante.setMontoTotal(request.getMontoTotal().doubleValue());
         comprobante.setDescripcion(request.getDescripcion());
         comprobante.setFechaRegistro(LocalDate.now());
-
+        comprobanteRepository.save(comprobante);
         Cuenta cuentaClientes = obtenerCuentaOError("121", "Cuenta Clientes no configurada");
         Cuenta cuentaVentas = obtenerCuentaOError(CUENTA_VENTAS, "Cuenta Ventas no configurada");
         Cuenta cuentaIgv = obtenerCuentaOError(CUENTA_IGV, "Cuenta IGV no configurada");
